@@ -142,52 +142,125 @@
 
 - (IBAction)sessionButtonPresses:(UIButton *)button
 {
-  NSLog(@"%s", __FUNCTION__);
-  self.resultView.text = @"";
-  NSURLSessionConfiguration *sessionConfig =
-    [NSURLSessionConfiguration defaultSessionConfiguration];
-  sessionConfig.allowsCellularAccess = YES;
-  if ([self.requestTextField.text length]) {
-    sessionConfig.timeoutIntervalForRequest =
-      [self.requestTextField.text integerValue];
-  }
-  if ([self.resourceTextField.text length]) {
-  sessionConfig.timeoutIntervalForResource =
-    [self.resourceTextField.text integerValue];
-  }
-  sessionConfig.HTTPMaximumConnectionsPerHost = 1;
+    NSLog(@"%s", __FUNCTION__);
+    
+    self.resultView.text = @"";
+    
+    NSURLSessionConfiguration *sessionConfig = [NSURLSessionConfiguration defaultSessionConfiguration];
 
-  void (^handler)(NSData *, NSURLResponse *, NSError *) =
-    ^(NSData *data, NSURLResponse *response, NSError *error) {
-    NSString *s;
-    if (error) {
-      s = [NSString stringWithFormat:@"session error:\n%@",
-                    [error localizedDescription]];
-    } else {
-      s = [NSString stringWithFormat:@"session response:\n%@",
-                    [[NSString alloc]
-                      initWithData:data encoding:NSUTF8StringEncoding]];
+    if ([self.requestTextField.text length]) {
+        sessionConfig.timeoutIntervalForRequest = [self.requestTextField.text integerValue];
     }
-    dispatch_async(dispatch_get_main_queue(), ^{
-        self.resultView.text = s;
-      });
-  };
-
-  NSURLSession *session =
-    [NSURLSession sessionWithConfiguration:sessionConfig
-                                  delegate:self
-                             delegateQueue:nil];
-
-  NSURLSessionDataTask *task;
-  NSURL *url = [NSURL URLWithString:self.urlTextField.text];
-  if (button == self.sessionButton) {
-    task = [session dataTaskWithURL:url completionHandler:handler];
-  } else {
-    task = [session dataTaskWithRequest:self.request completionHandler:handler];
-  }
-
-  [task resume];
+    if ([self.resourceTextField.text length]) {
+        sessionConfig.timeoutIntervalForResource = [self.resourceTextField.text integerValue];
+    }
+    
+    void (^handler)(NSData *, NSURLResponse *, NSError *) = ^(NSData *data, NSURLResponse *response, NSError *error) {
+        NSString *s;
+        if (error) {
+            s = [NSString stringWithFormat:@"session error:\n%@", [error localizedDescription]];
+        } else {
+            s = [NSString stringWithFormat:@"session response:\n%@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]];
+        }
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.resultView.text = s;
+        });
+    };
+    
+    NSURLSession *session = [NSURLSession sessionWithConfiguration:sessionConfig
+                                                          delegate:self
+                                                     delegateQueue:nil];
+    
+    NSURLSessionDataTask *task;
+    NSURL *url = [NSURL URLWithString:self.urlTextField.text];
+    if (button == self.sessionButton) {
+        task = [session dataTaskWithURL:url];
+//        task = [session dataTaskWithURL:url completionHandler:handler];
+    } else {
+        task = [session dataTaskWithRequest:self.request completionHandler:handler];
+    }
+    
+    [task resume];
 }
+
+- (void)URLSession:(NSURLSession *)session didBecomeInvalidWithError:(NSError *)error
+{
+    NSLog(@"%s invoked", __FUNCTION__);
+}
+
+- (void)URLSession:(NSURLSession *)session didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge
+ completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential *credential))completionHandler
+{
+    NSLog(@"%s invoked", __FUNCTION__);
+    completionHandler(NSURLSessionAuthChallengeUseCredential, nil);
+}
+
+- (void)URLSessionDidFinishEventsForBackgroundURLSession:(NSURLSession *)session
+{
+    NSLog(@"%s invoked", __FUNCTION__);
+}
+
+- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task
+willPerformHTTPRedirection:(NSHTTPURLResponse *)response
+        newRequest:(NSURLRequest *)request
+ completionHandler:(void (^)(NSURLRequest *))completionHandler
+{
+    NSLog(@"%s invoked", __FUNCTION__);
+}
+
+- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task
+didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge
+ completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential *credential))completionHandler
+{
+    NSLog(@"%s invoked", __FUNCTION__);
+}
+
+- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task
+ needNewBodyStream:(void (^)(NSInputStream *bodyStream))completionHandler
+{
+    NSLog(@"%s invoked", __FUNCTION__);
+}
+
+- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task
+   didSendBodyData:(int64_t)bytesSent
+    totalBytesSent:(int64_t)totalBytesSent
+totalBytesExpectedToSend:(int64_t)totalBytesExpectedToSend
+{
+    NSLog(@"%s invoked", __FUNCTION__);
+}
+
+- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error
+{
+    NSLog(@"%s invoked\n%@", __FUNCTION__, error);
+}
+
+- (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask
+didReceiveResponse:(NSURLResponse *)response
+ completionHandler:(void (^)(NSURLSessionResponseDisposition disposition))completionHandler
+{
+    NSLog(@"%s invoked", __FUNCTION__);
+    completionHandler(NSURLSessionResponseAllow);
+}
+
+- (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask
+didBecomeDownloadTask:(NSURLSessionDownloadTask *)downloadTask
+{
+    NSLog(@"%s invoked", __FUNCTION__);
+}
+
+- (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask
+    didReceiveData:(NSData *)data
+{
+    NSLog(@"%s invoked", __FUNCTION__);
+}
+
+- (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask
+ willCacheResponse:(NSCachedURLResponse *)proposedResponse
+ completionHandler:(void (^)(NSCachedURLResponse *cachedResponse))completionHandler
+{
+    NSLog(@"%s invoked", __FUNCTION__);
+}
+
 
 @end
 
